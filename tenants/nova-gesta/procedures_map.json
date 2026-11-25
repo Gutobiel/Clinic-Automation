@@ -1,0 +1,34 @@
+{
+  "default_tuss_consulta": "10101012",
+  "consultas_por_operadora": {
+    "postal_saude": { "default": "10101012" },
+    "amil": { "default": "10101012" },
+    "tst_saude": { "default": "10101012" },
+    "saude_caixa": { "default": "10101012" },
+    "pf_saude": {
+      "pediatria": "7.00.10.70-7"
+    },
+    "plan_assiste": {
+      "pediatria": "700010707"
+    },
+    "prosaude_tjdft": {
+      "pediatria": "90050288",
+      "ginecologia": "90050690",
+      "clinica_medica": "90050296"
+    },
+    "senado_federal": {
+      "pediatria": "000010530",
+      "ginecologia": "000010014",
+      "cirurgia_pediatrica": "000010557"
+    }
+  },
+  "exames_tuss_tabela_22": {
+    "40901300": "US Obstétrica / Ultrassonografia (referência vídeo GDF)",
+    "40901386": "Doppler colorido (referência vídeo GDF)",
+    "40901360": "US Transvaginal / Pélvica (referência vídeo GDF)",
+    "40901114": "Exame ultrassonográfico tabela 22 (referência vídeo GDF)",
+    "40901203": "Exame ultrassonográfico tabela 22 (referência vídeo GDF)",
+    "40901211": "Exame ultrassonográfico tabela 22 (referência vídeo GDF)",
+    "40901122": "Exame ultrassonográfico tabela 22 (referência vídeo GDF)"
+  }
+}

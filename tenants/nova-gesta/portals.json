@@ -1,0 +1,98 @@
+{
+  "portals": {
+    "gdf_saude": {
+      "display_name": "INAS — GDF Saúde",
+      "motor": "MaidaGdfWorker",
+      "provider_mode": "direct_with_amhp_requester",
+      "login_url": "https://gdf.maida.health/sso/login",
+      "sp_sadt_url": "https://gdf.maida.health/solicitacoes/sp-sadt",
+      "history_url": "https://gdf.maida.health/solicitacoes/historico/solicitacoes",
+      "max_items_per_guide": 4,
+      "requires_medical_order_attachment": true,
+      "requires_capture_and_execute_step": true,
+      "never_trigger_password_reset": true,
+      "aliases": ["GDF SAUDE", "INAS", "INAS GDF", "GDF SAÚDE"]
+    },
+    "postal_saude": {
+      "display_name": "Postal Saúde (ECT)",
+      "motor": "BennerWesWorker",
+      "wes_mode": "consulta_1_passo",
+      "provider_mode": "direct",
+      "base_url": "https://autorizador.postalsaudeservicos.com.br/AutorizadorPRO/pagemain.aspx",
+      "never_trigger_password_reset": true,
+      "aliases": ["POSTAL SAUDE", "POSTAL SAÚDE", "CORREIOS", "CORREIOSSAUDE"]
+    },
+    "plan_assiste": {
+      "display_name": "Plan-Assiste (MPU / MPF)",
+      "motor": "BennerWesWorker",
+      "wes_mode": "sadt_2_passos",
+      "provider_mode": "direct",
+      "base_url": "https://sistema.planassiste.mpu.mp.br/autorizadorweb/pagemain.aspx",
+      "never_trigger_password_reset": true,
+      "aliases": ["PLAN-ASSISTE", "PLAN ASSISTE", "MPU", "MPF"]
+    },
+    "saude_caixa": {
+      "display_name": "Saúde Caixa (CEF)",
+      "motor": "BennerWesWorker",
+      "wes_mode": "sadt_2_passos",
+      "provider_mode": "amhp",
+      "base_url": "https://credenciadosaude.caixa.gov.br/pagemain.aspx",
+      "never_trigger_password_reset": true,
+      "aliases": ["SAUDE CAIXA", "SAÚDE CAIXA", "CAIXA", "CEF"]
+    },
+    "benner_conecta_amhp": {
+      "display_name": "Benner Conecta (AMHP-DF)",
+      "motor": "BennerConectaWorker",
+      "provider_mode": "amhp",
+      "login_url": "https://portalconectasaude.com.br/Account/Login",
+      "consult_url": "https://portalconectasaude.com.br/Guias/Consulta/NovaConsulta",
+      "requires_operator_selection": true,
+      "never_trigger_password_reset": true,
+      "operators": {
+        "senado_federal": { "label": "SENADO FEDERAL", "handleOperadora": "39", "aliases": ["SIS", "SIS - SENADO", "SENADO", "SENADO FEDERAL"] },
+        "stf_med": { "label": "STF-MED", "aliases": ["STF-MED", "STF MED", "STF"] },
+        "tre_saude": { "label": "TRE-SAÚDE", "aliases": ["TRE-SAUDE", "TRE-SAÚDE", "TRE"] },
+        "pmdf_saude": { "label": "PMDF Saúde", "aliases": ["PMDF", "PMDF SAUDE"] },
+        "camed": { "label": "CAMED", "aliases": ["CAMED"] },
+        "fapes": { "label": "FAPES", "aliases": ["FAPES", "BNDES"] },
+        "conab": { "label": "CONAB", "aliases": ["CONAB"] }
+      }
+    },
+    "prosaude_tjdft": {
+      "display_name": "Pró-Saúde (TJDFT)",
+      "motor": "BennerConectaWorker",
+      "provider_mode": "direct",
+      "consult_url": "https://prosaudeconecta.tjdft.jus.br/Guias/Consulta/NovaConsulta",
+      "requires_operator_selection": false,
+      "never_trigger_password_reset": true,
+      "aliases": ["PRO-SAUDE", "PRÓ-SAÚDE", "TJDFT", "PROSAUDE"]
+    },
+    "amil": {
+      "display_name": "Amil",
+      "motor": "AmilWorker",
+      "provider_mode": "direct",
+      "auth_request_url": "https://credenciado.amil.com.br/pedidos-autorizacao",
+      "never_trigger_password_reset": true,
+      "aliases": ["AMIL", "MEDIAL", "ONE HEALTH"]
+    },
+    "pf_saude": {
+      "display_name": "PF Saúde (Polícia Federal)",
+      "motor": "WebPlanWorker",
+      "provider_mode": "amhp",
+      "login_url": "https://novowebplanpfdf.facilinformatica.com.br/GuiasTISS/Logon",
+      "consult_url": "https://novowebplanpfdf.facilinformatica.com.br/GuiasTISS/GuiaConsulta/ViewGuiaConsulta",
+      "fallback_unregistered_doctor_code": "BCWQM-0",
+      "never_trigger_password_reset": true,
+      "aliases": ["PF SAUDE", "PF SAÚDE", "POLICIA FEDERAL"]
+    },
+    "tst_saude": {
+      "display_name": "TST-Saúde",
+      "motor": "TstSaudeWorker",
+      "provider_mode": "direct",
+      "request_url": "https://aplicacao.tstsaude.tst.jus.br/tstsaude/SolicitarProcedimento.do",
+      "tuss_table_label": "Tabela TUSS",
+      "never_trigger_password_reset": true,
+      "aliases": ["TST-SAUDE", "TST-SAÚDE", "TST SAUDE", "TST"]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Segredos e credenciais (NUNCA versionar)
+.env
+.env.*
+!.env.example
+tenants/**/.env
+tenants/**/.env.*
+!tenants/**/.env.example
+*.pem
+*.key
+*service-account*.json
+*credentials*.json
+
+# Sessões de navegador Playwright e artefatos de execução (LGPD)
+storage_state/
+downloads/
+screenshots/
+videos/
+evidence/
+*.pdf
+*.webm
+*.mp4
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+
+# Binários locais auxiliares (ex.: cloudflared)
+bin/
+
+# Python / Node / OS
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+.DS_Store
+Thumbs.db

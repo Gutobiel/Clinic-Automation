@@ -1,0 +1,33 @@
+# Exemplo de configuração do Hermes Gateway para clinic-automation
+# Copie para ~/.hermes/gateway.yaml e preencha os tokens via variáveis de ambiente.
+
+agent:
+  name: aegis-clinic-faturamento
+  soul_file: ./hermes/SOUL.md
+  skills_dir: ./hermes/skills
+
+api_bridge:
+  base_url: "http://127.0.0.1:8000"
+  timeout_seconds: 120
+
+schedules:
+  - name: "varredura-agenda-igut"
+    cron: "0 7,13,18 * * 1-6"
+    timezone: "America/Sao_Paulo"
+    prompt: "Execute a skill faturamento-guias para varrer a agenda iGUT de hoje e dos próximos 2 dias, auditar documentos no Google Drive e processar guias elegíveis."
+
+  - name: "monitoramento-em-analise"
+    cron: "*/30 8-19 * * 1-6"
+    timezone: "America/Sao_Paulo"
+    prompt: "Execute a skill faturamento-guias para reconsultar todas as guias com status IN_ANALYSIS e avisar imediatamente no grupo da clínica as que forem AUTORIZADAS ou NEGADAS."
+
+  - name: "fechamento-diario-guias"
+    cron: "0 18 * * 1-6"
+    timezone: "America/Sao_Paulo"
+    prompt: "Gere o resumo diário de guias autorizadas, em análise, bloqueadas por Anti-Glosa e negadas, e publique no grupo da clínica."
+
+channels:
+  telegram:
+    enabled: true
+    bot_token_env: "TELEGRAM_BOT_TOKEN"
+    group_chat_id_env: "TELEGRAM_GROUP_CHAT_ID"

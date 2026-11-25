@@ -1,0 +1,46 @@
+{
+  "tenant_slug": "nova-gesta",
+  "clinic_name": "Clínica Nova Gesta Ginecologia & Obstetrícia",
+  "timezone": "America/Sao_Paulo",
+  "providers": {
+    "direct": {
+      "razao_social": "NOVA GESTA GINECOLOGIA E OBSTETRICIA LTDA",
+      "cnpj": "44.410.023/0001-40",
+      "cnpj_digits": "44410023000140",
+      "gdf_saude_code": "2326",
+      "gdf_saude_code_padded": "02326",
+      "amil_code": "75693771",
+      "default_unit": "Asa Norte"
+    },
+    "amhp": {
+      "razao_social": "ASSOCIACAO DOS MEDICOS DE HOSP PRIVADOS DO DF (AMHPDF)",
+      "cnpj_gdf_solicitante": "07.336.699/0001-85",
+      "cnpj_conecta": "00.735.860/0001-73",
+      "gdf_saude_solicitante_code": "2073",
+      "gdf_saude_solicitante_padded": "02073",
+      "caixa_prestador_code": "A0073586000173",
+      "default_unit": "Asa Sul"
+    }
+  },
+  "drive": {
+    "subfolders": {
+      "documento_identidade": "01_Identidade",
+      "carteirinha_convenio": "02_Carteirinhas",
+      "pedido_medico": "03_Pedidos_Medicos",
+      "comprovante_pagamento": "04_Comprovantes",
+      "exame_laudo": "05_Exames_Laudos",
+      "guia_autorizada": "06_Guias_Autorizadas"
+    },
+    "dossier_filename": "ficha_paciente.json"
+  },
+  "schedule": {
+    "daily_agenda_scan_cron": "0 7,13,18 * * 1-6",
+    "in_analysis_recheck_cron": "*/30 8-19 * * 1-6",
+    "daily_summary_cron": "0 18 * * 1-6",
+    "lookahead_days": 2
+  },
+  "igut_closing": {
+    "exam_pdf_name_pattern": "AUT EXAME - DRA {doctor_short} ({date_dd_mm})",
+    "consult_pdf_name_pattern": "AUT CONSULTA - DRA {doctor_short} ({date_dd_mm})"
+  }
+}

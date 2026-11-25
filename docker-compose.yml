@@ -1,0 +1,19 @@
+services:
+  clinic-automation:
+    build: .
+    container_name: aegis_clinic_automation
+    restart: unless-stopped
+    env_file:
+      - ./tenants/${TENANT_SLUG:-nova-gesta}/.env
+    environment:
+      - TENANT_SLUG=${TENANT_SLUG:-nova-gesta}
+      - DB_PATH=/app/data/clinic_automation.db
+      - PLAYWRIGHT_HEADLESS=true
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./storage_state:/app/storage_state
+      - ./downloads:/app/downloads
+      - ./screenshots:/app/screenshots
+      - ./secrets:/opt/clinic-automation/secrets:ro
