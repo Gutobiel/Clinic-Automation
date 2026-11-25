@@ -64,25 +64,40 @@ def _extract_patient_summary(folder_name: str, dossier: dict[str, Any]) -> dict[
     conv = dossier.get("convenio_atual") or {}
     docs = dossier.get("documentos") or []
 
-    card_number = ""
+    card_number = str(
+        conv.get("numero_carteirinha")
+        or conv.get("numeroCarteirinha")
+        or conv.get("carteirinha")
+        or ""
+    )
     card_validity = str(conv.get("validade") or "")
-    operator = str(conv.get("operadora") or "")
-    holder_name = str(pac.get("nome") or folder_name)
+    operator = str(conv.get("operadora") or conv.get("convenio") or "")
+    holder_name = str(conv.get("titular") or conv.get("nome_titular") or pac.get("nome") or folder_name)
     cpf = str(pac.get("cpf") or "")
     phone = str(pac.get("telefone") or "")
 
     for doc in reversed(docs):
         if doc.get("categoria") == "carteirinha_convenio":
             campos = doc.get("ocr_campos") or {}
-            if campos.get("numero_carteirinha"):
-                card_number = str(campos["numero_carteirinha"])
-            if campos.get("operadora"):
-                operator = str(campos["operadora"])
-            if campos.get("validade"):
+            cand_card = (
+                campos.get("numero_carteirinha")
+                or campos.get("numeroCarteirinha")
+                or campos.get("carteirinha")
+                or campos.get("matricula")
+                or campos.get("codigo_beneficiario")
+            )
+            if cand_card and not card_number:
+                card_number = str(cand_card)
+            cand_op = campos.get("operadora") or campos.get("convenio")
+            if cand_op and not operator:
+                operator = str(cand_op)
+            if campos.get("validade") and not card_validity:
                 card_validity = str(campos["validade"])
-            if campos.get("nome_titular"):
-                holder_name = str(campos["nome_titular"])
-            break
+            cand_holder = campos.get("nome_titular") or campos.get("titular")
+            if cand_holder:
+                holder_name = str(cand_holder)
+            if card_number:
+                break
 
     return {
         "name": holder_name.strip() or folder_name,
