@@ -847,8 +847,12 @@ class BrowserAiAgent:
         has_pwd_field = any(e.get("tag") == "input" and e.get("type") == "password" for e in (obs.get("elements") or []))
         task_ctx: dict[str, Any] = {
             "portal": route.display_name,
-            "operator": route.operator_label,
-            "patient": {"name": job.patient_name, "cpf": job.patient_cpf, "card_number": job.card_number},
+            "operator": route.operator_label or job.insurance_name,
+            "patient": {
+                "name": "{{PATIENT_NAME}}",
+                "cpf": "{{PATIENT_CPF}}",
+                "card_number": "{{PATIENT_CARD}}",
+            },
             "doctor": {"name": job.doctor_name, "crm": job.doctor_crm, "cbo": job.doctor_cbo, "specialty": job.specialty},
             "appointment_type": job.appointment_type,
             "guide_type": "SP/SADT" if route.requires_medical_order_attachment else "Consulta",
@@ -915,30 +919,47 @@ class BrowserAiAgent:
 
     async def _decide_with_openai(self, **kwargs: Any) -> BrowserActionDecision:
         prompt = self._build_llm_prompt(**kwargs)
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={"Authorization": f"Bearer {self.settings.openai_api_key}"},
-                json={
-                    "model": self.settings.openai_model,
-                    "response_format": {"type": "json_object"},
-                    "temperature": 0.1,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": (
-                                "Você é o agente autorizado de automação de back-office de uma clínica médica operando seu próprio portal "
-                                "com placeholders seguros locais ({{PORTAL_USERNAME}} e {{PORTAL_PASSWORD}}). "
-                                "Responda exclusivamente JSON válido conforme o schema solicitado."
-                            ),
-                        },
-                        {"role": "user", "content": prompt},
-                    ],
-                },
-            )
-            resp.raise_for_status()
-            content = resp.json()["choices"][0]["message"]["content"]
-            return BrowserActionDecision.model_validate_json(content)
+        job: GuideJob = kwargs["job"]
+        async with httpx.AsyncClient(timeout=35.0) as client:
+            last_err = "resposta vazia"
+            for attempt in range(2):
+                resp = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {self.settings.openai_api_key}"},
+                    json={
+                        "model": self.settings.openai_model,
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.1,
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": (
+                                    "Você é um assistente de automação RPA (UI testing / navegação web) autorizado pela clínica médica "
+                                    "operando seu próprio sistema interno de faturamento usando placeholders seguros "
+                                    "({{PORTAL_USERNAME}}, {{PORTAL_PASSWORD}}, {{PATIENT_NAME}}, {{PATIENT_CPF}}, {{PATIENT_CARD}}). "
+                                    "Nenhum dado pessoal real está presente. Responda exclusivamente JSON válido conforme o schema solicitado."
+                                ),
+                            },
+                            {"role": "user", "content": prompt},
+                        ],
+                    },
+                )
+                resp.raise_for_status()
+                msg = resp.json()["choices"][0]["message"]
+                content = msg.get("content")
+                if content:
+                    decision = BrowserActionDecision.model_validate_json(content)
+                    if decision.value:
+                        decision.value = (
+                            decision.value
+                            .replace("{{PATIENT_NAME}}", job.patient_name or "")
+                            .replace("{{PATIENT_CPF}}", job.patient_cpf or "")
+                            .replace("{{PATIENT_CARD}}", job.card_number or "")
+                        )
+                    return decision
+                last_err = f"content=None refusal={msg.get('refusal')}"
+                logger.warning("OpenAI tentativa %d retornou %s; tentando novamente...", attempt + 1, last_err)
+            raise ValueError(last_err)
 
     async def _decide_with_gemini(self, **kwargs: Any) -> BrowserActionDecision:
         prompt = self._build_llm_prompt(**kwargs)
@@ -1170,23 +1191,23 @@ class BrowserAiAgent:
                 )
 
         if "amhptiss.amhp.com.br" in cur_url:
-            if "alterar-senha" in cur_url:
-                # Se já abriu submenu de Consultório (ex: Guias, Autorização, Elegibilidade, Atendimento), clica no subitem!
-                sub_btn = next(
+            is_readonly_demo = job.igut_appointment_id == "REAL-AMHP-READONLY"
+            # Se estamos em Default.aspx ou alterar-senha, SEMPRE navegar para Consultorio -> Atendimento primeiro!
+            if "default.aspx" in cur_url or "alterar-senha" in cur_url:
+                atend_btn = next(
                     (
                         e
                         for e in elements
                         if e["tag"] in ("a", "button", "li", "div")
-                        and re.search(r"(guia|autoriza|elegibil|atendimento|consulta|faturamento|lote|solicita)", _el_desc(e))
-                        and not re.search(r"(alterar\s+senha|sair)", _el_desc(e))
+                        and _norm(e.get("text", "")) == "atendimento"
                     ),
                     None,
                 )
-                if sub_btn:
+                if atend_btn:
                     return BrowserActionDecision(
-                        thought=f"Submenu do AMHPTISS aberto! Navegando para '{sub_btn.get('text') or 'Guias'}' em modo leitura.",
+                        thought="Abrindo a tela real de 'Atendimento' no AMHPTISS para iniciar a guia.",
                         action="click",
-                        element_id=sub_btn["id"],
+                        element_id=atend_btn["id"],
                     )
                 consultorio_btn = next(
                     (
@@ -1199,17 +1220,18 @@ class BrowserAiAgent:
                 )
                 if consultorio_btn:
                     return BrowserActionDecision(
-                        thought="Menu lateral do AMHPTISS ativo! Abrindo o menu 'Consultório' (ignorando a tela /alterar-senha).",
+                        thought="Menu lateral do AMHPTISS ativo! Abrindo o menu 'Consultório'.",
                         action="click",
                         element_id=consultorio_btn["id"],
                     )
-            menus = [e.get("text") for e in elements if e.get("text") and e["tag"] in ("a", "button", "li")][:12]
-            menus_str = ", ".join(m for m in menus if m)
-            return BrowserActionDecision(
-                thought=f"AMHPTISS carregado e autenticado! URL: {obs.get('url')}. Opções visíveis: {menus_str or 'painel principal'}.",
-                action="done",
-                portal_status="AUTHORIZED",
-            )
+            if is_readonly_demo:
+                menus = [e.get("text") for e in elements if e.get("text") and e["tag"] in ("a", "button", "li")][:12]
+                menus_str = ", ".join(m for m in menus if m)
+                return BrowserActionDecision(
+                    thought=f"AMHPTISS carregado e autenticado! URL: {obs.get('url')}. Opções visíveis: {menus_str or 'painel principal'}.",
+                    action="done",
+                    portal_status="AUTHORIZED",
+                )
 
         # 5. Formulário de Solicitação de Guia (SP/SADT ou Consulta)
         first_tuss = (job.procedure_codes or route.procedure_codes or ["10101012"])[0]
