@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -164,18 +165,18 @@ HUD_UPDATE_JS = r"""
     hud.id = 'aegis-ai-hud';
     hud.style.cssText = [
       'position: fixed',
-      'bottom: 16px',
-      'right: 16px',
-      'width: 360px',
+      'bottom: 12px',
+      'right: 12px',
+      'width: 290px',
       'z-index: 2147483647',
       'background: rgba(12, 18, 32, 0.94)',
       'color: #f1f5f9',
       'border: 1px solid rgba(56, 189, 248, 0.55)',
-      'border-radius: 14px',
-      'padding: 14px 16px',
+      'border-radius: 12px',
+      'padding: 10px 12px',
       'font-family: Inter, Segoe UI, system-ui, sans-serif',
-      'font-size: 13px',
-      'box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45)',
+      'font-size: 11.5px',
+      'box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45)',
       'backdrop-filter: blur(10px)',
       'pointer-events: none',
     ].join(';');
@@ -305,20 +306,27 @@ class BrowserAiAgent:
         downloaded_pdf = False
         result: PortalExecutionResult | None = None
 
+        vp_width = int(os.getenv("BROWSER_WIDTH", "1024"))
+        vp_height = int(os.getenv("BROWSER_HEIGHT", "620"))
+
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=headless,
                 slow_mo=slow_mo,
-                args=["--start-maximized"] if not headless else [],
+                args=(
+                    [f"--window-size={vp_width + 16},{vp_height + 70}", "--window-position=60,20"]
+                    if not headless
+                    else []
+                ),
             )
             context_kwargs: dict[str, Any] = {
                 "accept_downloads": True,
-                "viewport": {"width": 1366, "height": 840},
+                "viewport": {"width": vp_width, "height": vp_height},
             }
             if record_video_dir:
                 Path(record_video_dir).mkdir(parents=True, exist_ok=True)
                 context_kwargs["record_video_dir"] = str(record_video_dir)
-                context_kwargs["record_video_size"] = {"width": 1366, "height": 840}
+                context_kwargs["record_video_size"] = {"width": vp_width, "height": vp_height}
             if state_file.exists():
                 context_kwargs["storage_state"] = str(state_file)
 
